@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafe Schedule</title>
+    <style>
+        body {
+            font-family: Times, sans-serif;
+            text-align: center;
+        }
+
+        #schedule {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .shift-column {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        select {
+            margin-bottom: 10px;
+        }
+
+        #submitBtn, #downloadBtn {
+            margin-top: 20px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Cafe Shift Schedule</h2>
+
+    <div>
+        <label for="day">Select Day:</label>
+        <select id="day">
+            <option value="shanbe">Shanbe</option>
+            <option value="yekshanbe">yekshanbe</option>
+            <option value="doshanbe">doshanbe</option>
+            <option value="seshanbe">seshanbe</option>
+            <option value="cheharshanbe">chaharshanbe</option>
+            <option value="panjshanbe">panjshanbe</option>
+            <option value="jome">jome</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="shift">Select Shift:</label>
+        <select id="shift">
+            <option value="Baker1">Baker1 (6 to 14)</option>
+            <option value="SuperShift_6:30to15">SuperShift  (6:30 to 15)</option>
+            <option value="Cashier_Morning">Cashier  (6:30 to 15)</option>
+            <option value="Open_6:30to14">Open (6:30 to 14)</option>
+            
+
+            <option value="Middle_8to14">Middle (8 to 14)</option>
+            <option value="Middle_9to15">Middle 2 (9 to 15)</option>
+
+            <option value="Baker2_10to17">Baker2 (10 to 17)</option>
+
+            <option value="Middle_14to20">Middle (14 to 20)</option>
+            <option value="Middle_14to22">Middle (14 to 22)</option>
+
+            <option value="SuperShift_15to24">Supershift (15 to 24)</option>
+            <option value="Cashier_Night">Cashier (15 to 24)</option>
+            <option value="Close_15to24">Close (15 to 24)</option>
+            <option value="Close_16to24">Close (16 to 24)</option>
+                    </select>
+    </div>
+
+    <div>
+        <label for="staff">Select Staff:</label>
+        <select id="staff">
+            <option value="Milad">Milad</option>
+            <option value="Soroush">Soroush</option>
+            <option value="Atena">Atena</option>
+            <option value="Moein">Moein</option>
+            <option value="Aria">Aria</option>
+            <option value="Behrad">Behrad</option>
+            <option value="Yasaman">Yasaman</option>
+            <option value="Diba">Diba</option>
+            <option value="Parsa">Parsa</option>
+            <option value="Joneydi">Joneydi</option>
+            <option value="Amir">Amir</option>
+            <option value="Parham">Parham</option>
+            <option value="Saber">Saber</option>
+            <option value="Parisa">Parisa</option>
+            <option value="Sana">Sana</option>
+            <option value="Leili">Leili</option>
+            <option value="Shamim">Shamim</option>
+            <option value="Mahrokh">Mahrokh</option>
+            <option value="Meraj">Meraj</option>
+        </select>
+    </div>
+
+    <button id="submitBtn" onclick="submitSchedule()">Submit</button>
+    <button id="downloadBtn" onclick="downloadExcel()">Download Excel</button>
+
+    <div id="schedule">
+        <!-- Shift schedule will be displayed here -->
+    </div>
+
+    <script>
+        let schedules = [];
+        let days = [];
+        let shifts = [];
+        let staffs = [];
+
+        function submitSchedule() {
+            const day = document.getElementById('day').value;
+            const shift = document.getElementById('shift').value;
+            const staff = document.getElementById('staff').value;
+
+            if (!days.includes(day)) {
+                days.push(day);
+            }
+
+            if (!shifts.includes(shift)) {
+                shifts.push(shift);
+            }
+
+            if (!staffs.includes(staff)) {
+                staffs.push(staff);
+            }
+
+            schedules.push([day, shift, staff]);
+            updateScheduleTable();
+        }
+
+        function updateScheduleTable() {
+            const scheduleDiv = document.getElementById('schedule');
+            scheduleDiv.innerHTML = '';
+
+            // Header row with shifts
+            const headerRow = document.createElement('div');
+            headerRow.className = 'shift-column';
+            headerRow.innerHTML = '<p>Day</p>';
+            shifts.forEach(shift => {
+                headerRow.innerHTML += `<p>${shift}</p>`;
+            });
+            scheduleDiv.appendChild(headerRow);
+
+            // Rows with day names and shifts
+            days.forEach(day => {
+                const dayRow = document.createElement('div');
+                dayRow.className = 'shift-column';
+                dayRow.innerHTML = `<p>${day}</p>`;
+
+                shifts.forEach(shift => {
+                    const staffEntry = schedules.find(entry => entry[0] === day && entry[1] === shift);
+                    const staffName = staffEntry ? staffEntry[2] : '';
+                    dayRow.innerHTML += `<p>${staffName}</p>`;
+                });
+
+                scheduleDiv.appendChild(dayRow);
+            });
+        }
+
+        function downloadExcel() {
+            if (schedules.length === 0) {
+                alert('No schedules added yet.');
+                return;
+            }
+
+            const data = [['Day', ...shifts]];
+            days.forEach(day => {
+                const dayRow = [day];
+                shifts.forEach(shift => {
+                    const staffEntry = schedules.find(entry => entry[0] === day && entry[1] === shift);
+                    const staffName = staffEntry ? staffEntry[2] : '';
+                    dayRow.push(staffName);
+                });
+                data.push(dayRow);
+            });
+
+            const csvContent = data.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'shift_schedule.csv';
+            link.click();
+        }
+    </script>
+
+</body>
+</html>
